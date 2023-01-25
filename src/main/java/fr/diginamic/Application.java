@@ -1,16 +1,13 @@
 package fr.diginamic;
 
-import java.util.Arrays;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RestController;
 
-import fr.diginamic.enums.Gender;
-import fr.diginamic.model.Animal;
-import fr.diginamic.model.Species;
 import fr.diginamic.repository.AnimalRepository;
 import fr.diginamic.repository.PersonRepository;
 import fr.diginamic.repository.SpeciesRepository;
@@ -18,6 +15,8 @@ import jakarta.transaction.Transactional;
 
 @SpringBootApplication
 @RestController
+@EnableAspectJAutoProxy
+@EnableScheduling
 public class Application implements CommandLineRunner {
 
 	public static void main(String[] args) {

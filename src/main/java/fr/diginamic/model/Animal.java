@@ -1,7 +1,6 @@
 package fr.diginamic.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import fr.diginamic.enums.Gender;
 import jakarta.persistence.CascadeType;
@@ -13,7 +12,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -34,8 +32,8 @@ public class Animal {
 	/**
 	 * Relation esclave ManyToMany avec la classe Person
 	 */
-	@ManyToMany(mappedBy = "compagnie",cascade = CascadeType.PERSIST)
-	private List<Person> maitres = new ArrayList<Person>();
+//	@ManyToMany(mappedBy = "compagnie",cascade = CascadeType.PERSIST)
+//	private List<Person> maitres = new ArrayList<Person>();
 
 	public Animal() {
 		super();
@@ -44,9 +42,10 @@ public class Animal {
 	/**
 	 * Relation maitre ManyTo1 avec la classe Species
 	 */
-	@ManyToOne
+	@ManyToOne 
 	@JoinColumn(name = "species_id")
 	@NotNull
+	@JsonIgnoreProperties("animaux")
 	private Species species;
 
 	@Override
@@ -95,13 +94,6 @@ public class Animal {
 		this.species = specie;
 	}
 
-	public List<Person> getMaitres() {
-		return maitres;
-	}
-
-	public void setMaitres(List<Person> maitres) {
-		this.maitres = maitres;
-	}
 	
 //	public void setMaitres(List<Person> maitres) {
 //		this.getMaitres().clear();

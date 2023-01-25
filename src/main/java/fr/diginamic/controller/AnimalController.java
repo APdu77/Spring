@@ -1,78 +1,76 @@
 package fr.diginamic.controller;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import fr.diginamic.model.Animal;
-import fr.diginamic.repository.AnimalRepository;
-import fr.diginamic.repository.PersonRepository;
-import fr.diginamic.repository.SpeciesRepository;
+import fr.diginamic.model.Person;
+import fr.diginamic.service.AnimalService;
 import jakarta.validation.Valid;
 
-@Controller
+@RestController
+@RequestMapping("/api/animal")
 public class AnimalController {
 
 	@Autowired
-	private AnimalRepository animalRepository;
-	@Autowired
-	private PersonRepository personRepository;
-	@Autowired
-	private SpeciesRepository speciesRepository;
+	private AnimalService animalService;
 
-	@GetMapping("/animal")
-	public String listAnimal(Model model) {
-		List<Animal> animals = (List<Animal>) animalRepository.findAll();
-		model.addAttribute("animals", animals);
-		return "list_animal";
+	@GetMapping("/")
+	public Page<Animal> findAll(@RequestParam(value = "page", defaultValue = "1") Integer page,
+			@RequestParam(value = "display", defaultValue = "20") Integer display) {
+		if (!animalService.findAll().isEmpty()) {
+			return this.animalService.findAllPageable(PageRequest.of(page - 1, display));
+		}
+		throw new RuntimeException("-----------animalLISTE ACTUELLEMENT VIDE-----------");
 	}
 
-	@GetMapping("/animal/{id}")
-	public String initUpdate(@PathVariable("id") Integer id, Model model) {
-		Optional<Animal> animal = animalRepository.findById(id);
+	@GetMapping("/{id}")
+	public Animal findOne(@PathVariable("id") Integer id) {
+		Optional<Animal> animal = animalService.findById(id);
 		if (animal.isPresent()) {
-			model.addAttribute(animal.get());
-			model.addAttribute("persons",personRepository.findAll());
-			model.addAttribute("species",speciesRepository.findAll());
-			return "update_animal";
+			return animal.get();
 		}
-		return "error";
+		throw new RuntimeException("-----------animalID INEXISTANT-----------");
 	}
 
-	@GetMapping("/animal/create")
-	public String initCreate(Model model) {
-		model.addAttribute(new Animal());
-		model.addAttribute("persons",personRepository.findAll());
-		model.addAttribute("species",speciesRepository.findAll());
-		return "create_animal";
-	}
-
-	@PostMapping("/animal")
-	public String createOrUpdate(@Valid Animal animal, BindingResult result, Model model) {
-		if (result.hasErrors()) {
-			model.addAttribute("persons",personRepository.findAll());
-			model.addAttribute("species",speciesRepository.findAll());
-			if (animal.getId() != null) {
-				return "update_animal";
-			}
-			return "create_animal";
+	@PostMapping("/")
+	public Animal createAnimal(@RequestBody @Valid Animal animalToCreate) {
+		if (animalToCreate.getId() == null) {
+			return this.animalService.create(animalToCreate);
 		}
-		this.animalRepository.save(animal);
-		return "redirect:/animal";
+		throw new RuntimeException("-----------CREEZ VOTRE ANIMAL SANS ID-----------");
 	}
 
-	@GetMapping("/animal/delete/{id}")
-	public String delete(@PathVariable("id") Integer animalId) {
-		Optional<Animal> animalToDelete = this.animalRepository.findById(animalId);
-		animalToDelete.ifPresent(animal -> this.animalRepository.delete(animal));
-		return "redirect:/animal";
+	@PutMapping("/{id}")
+	// @PutMapping
+	public Animal updateAnimal(@RequestBody @Valid Animal updatedAnimal, @PathVariable("id") Integer id) {
+		if (animalService.findById(updatedAnimal.getId()).isEmpty() || animalService.findById(id).isEmpty()) {
+			throw new RuntimeException("-----------animalID INEXISTANT-----------");
+		} else if (id != updatedAnimal.getId()) {
+			throw new RuntimeException("-----------LES animalID NE MATCHENT PAS-----------");
+		}
+		return this.animalService.update(updatedAnimal);
+	}
+
+	@DeleteMapping("/{id}")
+	public void delete(@PathVariable("id") Integer animalId) {
+
+		if (animalService.findById(animalId).isPresent()) {
+			this.animalService.delete(animalId);
+		}
+		throw new RuntimeException("-----------animalID INEXISTANT-----------");
 	}
 
 }
